@@ -17,6 +17,7 @@ import static model.CriticalSectionRequestType.REQUEST;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DistributedMonitor<T extends Message> {
+	public static final int RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS = 100;
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);
 	private final Lock lock = new ReentrantLock(true);
@@ -24,6 +25,7 @@ public class DistributedMonitor<T extends Message> {
 	private final SendingService sendingService;
 	private final List<NodeIdWithTimestamp> criticalSectionQueue = newArrayList();
 	private long currentTimestamp = 0;
+	private int receivedCriticalSectionResponses = 0;
 
 	public DistributedMonitor(DistributedMonitorConfiguration<T> configuration) {
 		this.configuration = configuration;
@@ -65,7 +67,9 @@ public class DistributedMonitor<T extends Message> {
 	private void handleNewMessage(byte[] body) {
 		try {
 			lock.lock();
-			LOGGER.info(new String(body, "UTF-8"));
+
+			// TODO: implement handling requests, implement message which will have type and body fileds
+			new String(body, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Incoming message parsing error", e);
 		} finally {
@@ -81,8 +85,23 @@ public class DistributedMonitor<T extends Message> {
 					.nodeId(configuration.getNodeId()).build());
 			sendingService.send(createCriticalSectionRequest().encode());
 
+			receivedCriticalSectionResponses = 0;
+			while (receivedCriticalSectionResponses < configuration.getNodeCount()) {
+				lock.unlock();
+				silentSleep(RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS);
+				lock.lock();
+			}
+
 		} finally {
 			lock.unlock();
+		}
+	}
+
+	private void silentSleep(int millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+			LOGGER.error("Silent sleep error", e);
 		}
 	}
 
