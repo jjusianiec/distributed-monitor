@@ -3,8 +3,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -15,7 +13,6 @@ import com.rabbitmq.client.ConnectionFactory;
 public class DistributedMonitorRunner {
 	public static final int CONSUMER_COUNT = 5;
 	public static final int PRODUCER_COUNT = 1;
-	private static final Logger LOGGER = LoggerFactory.getLogger(DistributedMonitorRunner.class);
 	public static final String CONSUMER_PRODUCER = "consumer-producer";
 	public static final HashSet<String> CONDITIONS = Sets.newHashSet("empty", "full");
 
@@ -27,7 +24,9 @@ public class DistributedMonitorRunner {
 					.builder().conditions(CONDITIONS).monitorId(CONSUMER_PRODUCER).nodeId(i)
 					.nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
 					.sharedObject(new ConsumerProducerSharedModel()).build();
-			consumers.add(new Thread(() -> new DistributedMonitor(configuration)));
+			consumers.add(new Thread(() -> {
+				DistributedMonitor monitor = new DistributedMonitor(configuration);
+			}));
 		}
 
 		List<Thread> producers = Lists.newArrayList();
@@ -59,13 +58,7 @@ public class DistributedMonitorRunner {
 
 		}
 
-		//		producers.forEach(Thread::start);
+		producers.forEach(Thread::start);
 		consumers.forEach(Thread::start);
-	}
-
-	private static void producer() throws InterruptedException {
-		distributedMonitor.signal("");
-		distributedMonitor.waitUntil("");
-		//sth
 	}
 }
