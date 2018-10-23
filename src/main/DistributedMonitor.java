@@ -1,17 +1,28 @@
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 
+import model.CriticalSectionRequest;
+import model.DistributedMonitorConfiguration;
+import model.NodeIdWithTimestamp;
+import model.Message;
+import service.ReceivingService;
+import service.SendingService;
+
+import static com.google.common.collect.Lists.newArrayList;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class DistributedMonitor<T extends SharedModel> {
+public class DistributedMonitor<T extends Message> {
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);
 	private final Lock lock = new ReentrantLock(true);
 	private final ReceivingService receivingService;
 	private final SendingService sendingService;
+	private final List<NodeIdWithTimestamp> criticalSectionQueue = newArrayList();
+	private long currentTimestamp = 0;
 
 	public DistributedMonitor(DistributedMonitorConfiguration<T> configuration) {
 		this.configuration = configuration;
@@ -23,13 +34,13 @@ public class DistributedMonitor<T extends SharedModel> {
 	}
 
 	public void synchronize(Runnable r) {
-		LOGGER.info("start");
+		acquireDistributedLock();
 		try {
 			r.call();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
-			LOGGER.info("stop");
+			releaseDistributedLock();
 		}
 	}
 
@@ -59,5 +70,29 @@ public class DistributedMonitor<T extends SharedModel> {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	private void acquireDistributedLock() {
+		lock.lock();
+		try {
+			currentTimestamp++;
+			criticalSectionQueue.add(NodeIdWithTimestamp.builder().timestamp(currentTimestamp)
+					.nodeId(configuration.getNodeId()).build());
+			sendingService.send(createCriticalSectionRequest().encode());
+
+
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private void releaseDistributedLock() {
+
+	}
+
+	private CriticalSectionRequest createCriticalSectionRequest() {
+		return CriticalSectionRequest.builder().nodeIdWithTimestamp(
+				NodeIdWithTimestamp.builder().nodeId(configuration.getNodeId())
+						.timestamp(currentTimestamp).build()).build();
 	}
 }

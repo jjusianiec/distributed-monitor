@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import model.ConsumerProducerSharedModel;
+import model.DistributedMonitorConfiguration;
+import model.Message;
+
 import static com.google.common.collect.Queues.newArrayDeque;
 
 public class DistributedMonitorRunner {
@@ -100,7 +104,7 @@ public class DistributedMonitorRunner {
 		}
 	}
 
-	private static DistributedMonitorConfiguration<SharedModel> getConfiguration(int i) {
+	private static DistributedMonitorConfiguration<Message> getConfiguration(int i) {
 		return DistributedMonitorConfiguration.builder().conditions(CONDITIONS)
 				.monitorId(CONSUMER_PRODUCER).nodeId(i).nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
 				.sharedObject(ConsumerProducerSharedModel.builder().size(BUFFER_SIZE)

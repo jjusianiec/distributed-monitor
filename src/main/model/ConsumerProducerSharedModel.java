@@ -1,3 +1,5 @@
+package model;
+
 import java.io.IOException;
 import java.util.Queue;
 
@@ -17,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ConsumerProducerSharedModel implements SharedModel {
+public class ConsumerProducerSharedModel implements Message {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerProducerSharedModel.class);
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private Integer size;
@@ -34,7 +36,7 @@ public class ConsumerProducerSharedModel implements SharedModel {
 	}
 
 	@Override
-	public SharedModel decode(String object) {
+	public Message decode(String object) {
 		try {
 			return OBJECT_MAPPER.readValue(object, ConsumerProducerSharedModel.class);
 		} catch (IOException e) {

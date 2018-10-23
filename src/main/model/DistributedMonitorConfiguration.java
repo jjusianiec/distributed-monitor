@@ -1,3 +1,5 @@
+package model;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DistributedMonitorConfiguration<T extends SharedModel> {
+public class DistributedMonitorConfiguration<T extends Message> {
 	private String monitorId;
 	private T sharedObject;
 	private Set<String> conditions;

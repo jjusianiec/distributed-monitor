@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import com.google.common.collect.Queues;
 
+import model.ConsumerProducerSharedModel;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConsumerProducerSharedModelTest {
