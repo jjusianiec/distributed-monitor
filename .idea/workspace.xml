@@ -507,9 +507,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="66" />
-    <option name="width" value="927" />
-    <option name="height" value="1080" />
+    <option name="x" value="375" />
+    <option name="y" value="340" />
+    <option name="width" value="1234" />
+    <option name="height" value="720" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">

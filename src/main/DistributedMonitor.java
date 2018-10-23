@@ -7,12 +7,13 @@ import org.slf4j.Logger;
 
 import model.CriticalSectionRequest;
 import model.DistributedMonitorConfiguration;
-import model.NodeIdWithTimestamp;
 import model.Message;
+import model.NodeIdWithTimestamp;
 import service.ReceivingService;
 import service.SendingService;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static model.CriticalSectionRequestType.REQUEST;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class DistributedMonitor<T extends Message> {
@@ -80,7 +81,6 @@ public class DistributedMonitor<T extends Message> {
 					.nodeId(configuration.getNodeId()).build());
 			sendingService.send(createCriticalSectionRequest().encode());
 
-
 		} finally {
 			lock.unlock();
 		}
@@ -93,6 +93,6 @@ public class DistributedMonitor<T extends Message> {
 	private CriticalSectionRequest createCriticalSectionRequest() {
 		return CriticalSectionRequest.builder().nodeIdWithTimestamp(
 				NodeIdWithTimestamp.builder().nodeId(configuration.getNodeId())
-						.timestamp(currentTimestamp).build()).build();
+						.timestamp(currentTimestamp).build()).type(REQUEST).build();
 	}
 }
