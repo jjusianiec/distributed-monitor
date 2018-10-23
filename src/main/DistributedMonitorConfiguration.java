@@ -1,4 +1,5 @@
 import java.util.Set;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,4 +16,5 @@ public class DistributedMonitorConfiguration<T extends SharedModel> {
 	private Set<String> conditions;
 	private Integer nodeCount;
 	private Integer nodeId;
+	private UUID runInstanceId;
 }
