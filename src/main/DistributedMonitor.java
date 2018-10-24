@@ -1,15 +1,19 @@
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 
 import model.ConditionMessage;
+import model.ConditionMessageType;
 import model.CriticalSectionRequest;
 import model.CriticalSectionRequestType;
 import model.DistributedMonitorConfiguration;
@@ -24,6 +28,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.stream.Collectors.toList;
 import static model.ConditionMessageType.ADD;
+import static model.ConditionMessageType.REMOVE;
 import static model.CriticalSectionRequestType.RELEASE;
 import static model.CriticalSectionRequestType.REQUEST;
 import static model.CriticalSectionRequestType.RESPONSE;
@@ -32,8 +37,9 @@ import static service.LamportClockUtils.getNewTimestamp;
 
 public class DistributedMonitor<T> {
 	public static final int WAITING_TO_RECEIVE_ALL_CRITICAL_SECTION_RESPONSES_SLEEP_MILLIS = 100;
-	public static final Integer ALL_NODES = null;
 	public static final int WAITING_TO_BE_FIRST_IN_QUEUE_SLEEP_MILLIS = 100;
+	public static final int WAITING_IN_WAIT_CONDITION_SLEEP_MILLIS = 10;
+	public static final Integer ALL_NODES = null;
 	public static final String SHARED_OBJECT_SYNCHRONIZATION = "SharedObjectSynchronization";
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);
@@ -67,7 +73,26 @@ public class DistributedMonitor<T> {
 	}
 
 	public void signal(String condition) {
-		LOGGER.info("signal");
+		throwRuntimeExceptionIfConditionInvalid(condition);
+		lock.lock();
+		try {
+			List<NodeIdWithTimestamp> nodeIdWithTimestamps = conditionToNode.get(condition);
+			nodeIdWithTimestamps.sort(NodeIdWithTimestampComparator.INSTANCE);
+			if(nodeIdWithTimestamps.isEmpty()) {
+				return;
+			}
+			NodeIdWithTimestamp nodeIdWithTimestamp = nodeIdWithTimestamps.get(0);
+			removeNodeFromConditionMap(condition, nodeIdWithTimestamp.getNodeId());
+			currentTimestamp++;
+			ConditionMessage conditionMessage = ConditionMessage.builder().type(REMOVE)
+					.name(condition).targetNodeId(nodeIdWithTimestamp.getNodeId()).build();
+			MonitorMessage monitorMessage = createMonitorMessage(
+					conditionMessage.getClass().getSimpleName(),
+					MessageSerializationService.encode(conditionMessage), ALL_NODES);
+			sendingService.send(MessageSerializationService.encode(monitorMessage));
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	public void waitUntil(String condition) {
@@ -87,6 +112,26 @@ public class DistributedMonitor<T> {
 		} finally {
 			lock.unlock();
 		}
+
+		boolean isStillInConditionMap = true;
+		do {
+			lock.lock();
+			try {
+				if (conditionToNode.get(condition).stream().noneMatch(
+						nodeIdWithTimestamp -> nodeIdWithTimestamp.getNodeId()
+								.equals(configuration.getNodeId()))) {
+					isStillInConditionMap = false;
+				}
+			} finally {
+				lock.unlock();
+			}
+
+			if (isStillInConditionMap) {
+				sleepQuietly(WAITING_IN_WAIT_CONDITION_SLEEP_MILLIS);
+			}
+		} while (isStillInConditionMap);
+
+		safeAcquireDistributedLock();
 	}
 
 	private void throwRuntimeExceptionIfConditionInvalid(String condition) {
@@ -106,8 +151,6 @@ public class DistributedMonitor<T> {
 	private void handleNewMessage(byte[] body) {
 		try {
 			lock.lock();
-
-			// TODO: implement handling requests, implement message which will have type and body fileds
 			MonitorMessage message = MessageSerializationService
 					.decode(new String(body, "UTF-8"), MonitorMessage.class);
 			if (isMessageInvalid(message)) {
@@ -122,7 +165,7 @@ public class DistributedMonitor<T> {
 
 			case SHARED_OBJECT_SYNCHRONIZATION:
 				currentTimestamp = getNewTimestamp(currentTimestamp, message);
-				configuration.setSharedObject(getSharedObject(message));
+				BeanUtils.copyProperties(configuration.getSharedObject(), getSharedObject(message));
 				break;
 
 			case "ConditionMessage":
@@ -131,7 +174,7 @@ public class DistributedMonitor<T> {
 				handleConditionMessage(conditionMessage, message);
 				break;
 			}
-		} catch (UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException| InvocationTargetException | IllegalAccessException e) {
 			LOGGER.error("Incoming message parsing error", e);
 		} finally {
 			lock.unlock();
@@ -144,16 +187,17 @@ public class DistributedMonitor<T> {
 			currentTimestamp = getNewTimestamp(currentTimestamp, message);
 			switch (conditionMessage.getType()) {
 			case ADD:
-				conditionToNode.get(conditionMessage.getName()).add(message.getNodeIdWithTimestamp());
+				conditionToNode.get(conditionMessage.getName())
+						.add(message.getNodeIdWithTimestamp());
 				break;
 			case REMOVE:
-				removeNodeFromConditionMap(conditionMessage.getName(), conditionMessage.getTargetNodeId());
+				removeNodeFromConditionMap(conditionMessage.getName(),
+						conditionMessage.getTargetNodeId());
 				break;
 			}
 		} finally {
 			lock.unlock();
 		}
-
 	}
 
 	private T getSharedObject(MonitorMessage message) {
@@ -183,7 +227,6 @@ public class DistributedMonitor<T> {
 			removeNodeFromCriticalSectionQueue(message.getNodeIdWithTimestamp().getNodeId());
 			break;
 		}
-
 	}
 
 	private void removeNodeFromCriticalSectionQueue(Integer nodeId) {
@@ -228,14 +271,14 @@ public class DistributedMonitor<T> {
 			sleepQuietly(WAITING_TO_BE_FIRST_IN_QUEUE_SLEEP_MILLIS);
 			lock.lock();
 		}
-
-		LOGGER.info("enters CS");
 	}
 
 	private void safeReleaseDistributedLock() {
 		lock.lock();
 		try {
 			releaseDistributedLock();
+			LOGGER.info(criticalSectionQueue.toString());
+			LOGGER.info(conditionToNode.get("empty").toString());
 		} finally {
 			lock.unlock();
 		}
@@ -259,7 +302,7 @@ public class DistributedMonitor<T> {
 
 	private void sleepQuietly(int millis) {
 		try {
-			Thread.sleep(millis);
+			Thread.sleep(ThreadLocalRandom.current().nextInt(millis));
 		} catch (InterruptedException e) {
 			LOGGER.error("Quietly sleep error", e);
 		}
