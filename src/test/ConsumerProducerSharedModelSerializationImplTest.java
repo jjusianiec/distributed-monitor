@@ -5,14 +5,17 @@ import org.junit.Test;
 import com.google.common.collect.Queues;
 
 import model.ConsumerProducerSharedModel;
+import model.ConsumerProducerSharedModelSerializationImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ConsumerProducerSharedModelTest {
+public class ConsumerProducerSharedModelSerializationImplTest {
 	public static final int SIZE = 10;
 	public static final int FIRST_VALUE = 10;
 	public static final int SECOND_VALUE = 5;
 	public static final int THIRD_VALUE = 2;
+
+	private ConsumerProducerSharedModelSerializationImpl tested = new ConsumerProducerSharedModelSerializationImpl();
 
 	@Test
 	public void shouldDecode() {
@@ -24,9 +27,8 @@ public class ConsumerProducerSharedModelTest {
 		ConsumerProducerSharedModel sharedModel = ConsumerProducerSharedModel.builder()
 				.buffer(buffer).size(SIZE).build();
 		// when
-		String encoded = sharedModel.encode();
-		ConsumerProducerSharedModel decode = (ConsumerProducerSharedModel) sharedModel
-				.decode(encoded);
+		String encoded = tested.encode(sharedModel);
+		ConsumerProducerSharedModel decode = tested.decode(encoded);
 		// then
 		assertThat(decode.getBuffer().remove()).isEqualTo(FIRST_VALUE);
 		assertThat(decode.getBuffer().remove()).isEqualTo(SECOND_VALUE);

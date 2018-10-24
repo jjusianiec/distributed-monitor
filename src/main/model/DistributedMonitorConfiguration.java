@@ -12,9 +12,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DistributedMonitorConfiguration<T extends SerializableMessage> {
+public class DistributedMonitorConfiguration<T> {
 	private String monitorId;
 	private T sharedObject;
+	private SharedObjectSerialization<T> sharedObjectSerialization;
 	private Set<String> conditions;
 	private Integer nodeCount;
 	private Integer nodeId;

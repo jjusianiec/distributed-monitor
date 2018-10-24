@@ -7,11 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 
 import model.ConsumerProducerSharedModel;
+import model.ConsumerProducerSharedModelSerializationImpl;
 import model.DistributedMonitorConfiguration;
-import model.SerializableMessage;
+import model.SharedObjectSerialization;
 
 import static com.google.common.collect.Queues.newArrayDeque;
 
@@ -104,10 +106,19 @@ public class DistributedMonitorRunner {
 		}
 	}
 
-	private static DistributedMonitorConfiguration<SerializableMessage> getConfiguration(int i) {
-		return DistributedMonitorConfiguration.builder().conditions(CONDITIONS)
-				.monitorId(CONSUMER_PRODUCER).nodeId(i).nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
-				.sharedObject(ConsumerProducerSharedModel.builder().size(BUFFER_SIZE)
-						.buffer(newArrayDeque()).build()).runInstanceId(RUN_INSTANCE_ID).build();
+	private static DistributedMonitorConfiguration<ConsumerProducerSharedModel> getConfiguration(
+			int i) {
+		DistributedMonitorConfiguration<ConsumerProducerSharedModel> configuration = new DistributedMonitorConfiguration<>();
+		configuration.setSharedObject(new ConsumerProducerSharedModel());
+		configuration.setSharedObjectSerialization(new ConsumerProducerSharedModelSerializationImpl());
+		return  configuration;
+//		return
+//
+//				DistributedMonitorConfiguration<>.builder().conditions(CONDITIONS)
+//				.monitorId(CONSUMER_PRODUCER).nodeId(i).nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
+//				.sharedObject(new ConsumerProducerSharedModel(BUFFER_SIZE, Queues.newArrayDeque()))
+//				.runInstanceId(RUN_INSTANCE_ID)
+//				.sharedObjectSerialization(new ConsumerProducerSharedModelSerializationImpl())
+//				.build();
 	}
 }

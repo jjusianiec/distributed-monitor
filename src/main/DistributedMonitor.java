@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import model.CriticalSectionRequest;
 import model.DistributedMonitorConfiguration;
 import model.MonitorMessage;
-import model.SerializableMessage;
 import model.NodeIdWithTimestamp;
 import service.ReceivingService;
 import service.SendingService;
@@ -17,7 +16,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static model.CriticalSectionRequestType.REQUEST;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class DistributedMonitor<T extends SerializableMessage> {
+public class DistributedMonitor<T> {
 	public static final int RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS = 100;
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);

@@ -37,7 +37,7 @@ public class SendingService {
 		try {
 			channel.basicPublish(monitorId, "", null, message.getBytes("UTF-8"));
 		} catch (IOException e) {
-			LOGGER.error("SerializableMessage sending error", e);
+			LOGGER.error("SharedObjectSerialization sending error", e);
 		}
 	}
 }
