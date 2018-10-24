@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a691bf32-e7d4-4222-ba37-8d4efb27b8d8" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/service/MessageSerializationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/DistributedMonitorTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/DistributedMonitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/DistributedMonitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/DistributedMonitorRunner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/DistributedMonitorRunner.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.gradle/" />
     <ignored path="$PROJECT_DIR$/build/" />
@@ -62,8 +61,20 @@
       <file leaf-file-name="DistributedMonitor.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/DistributedMonitor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="91" column="13" lean-forward="true" selection-start-line="91" selection-start-column="13" selection-end-line="91" selection-end-column="13" />
+            <state relative-caret-position="232">
+              <caret line="75" column="48" selection-start-line="75" selection-start-column="48" selection-end-line="75" selection-end-column="48" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DistributedMonitorTest.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/test/DistributedMonitorTest.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="15" column="64" lean-forward="true" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="64" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -74,7 +85,7 @@
       <file leaf-file-name="DistributedMonitorRunner.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/DistributedMonitorRunner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="213">
+            <state relative-caret-position="621">
               <caret line="81" column="20" selection-start-line="81" selection-start-column="20" selection-end-line="81" selection-end-column="20" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -89,8 +100,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="JUnit5 Test Class" />
-        <option value="JUnit4 Test Class" />
         <option value="Class" />
+        <option value="JUnit4 Test Class" />
       </list>
     </option>
   </component>
@@ -98,7 +109,12 @@
     <findStrings>
       <find>jersey</find>
       <find>RUN_INSTANCE_ID</find>
+      <find>class</find>
+      <find>class.</find>
     </findStrings>
+    <dirStrings>
+      <dir>$PROJECT_DIR$/src/main</dir>
+    </dirStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -470,6 +486,7 @@
         <option value="$PROJECT_DIR$/src/main/model/DistributedMonitorConfiguration.java" />
         <option value="$PROJECT_DIR$/src/main/service/MessageSerializationService.java" />
         <option value="$PROJECT_DIR$/src/main/DistributedMonitorRunner.java" />
+        <option value="$PROJECT_DIR$/src/test/DistributedMonitorTest.java" />
         <option value="$PROJECT_DIR$/src/main/DistributedMonitor.java" />
       </list>
     </option>
@@ -565,8 +582,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.RecentsKey">
-      <recent name="model" />
       <recent name="" />
+      <recent name="model" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -595,7 +612,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.ConsumerProducerSharedModelSerializationImplTest.shouldDecode">
+  <component name="RunManager" selected="Application.DistributedMonitorRunner">
     <configuration name="DistributedMonitorRunner" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="DistributedMonitorRunner" />
       <module name="distributed-monitor_main" />
@@ -655,6 +672,23 @@
       </option>
       <patterns />
     </configuration>
+    <configuration name="DistributedMonitorTest.shouldName" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="distributed-monitor_test" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="DistributedMonitorTest" />
+      <option name="METHOD_NAME" value="shouldName" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <patterns />
+    </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
@@ -698,13 +732,15 @@
       <item itemvalue="JUnit.ConsumerProducerSharedModelTest" />
       <item itemvalue="JUnit.ConsumerProducerSharedModelTest.shouldDecode" />
       <item itemvalue="JUnit.ConsumerProducerSharedModelSerializationImplTest.shouldDecode" />
+      <item itemvalue="JUnit.DistributedMonitorTest.shouldName" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.DistributedMonitorRunner" />
+        <item itemvalue="JUnit.DistributedMonitorTest.shouldName" />
         <item itemvalue="JUnit.ConsumerProducerSharedModelSerializationImplTest.shouldDecode" />
         <item itemvalue="JUnit.ConsumerProducerSharedModelTest.shouldDecode" />
         <item itemvalue="JUnit.ConsumerProducerSharedModelTest" />
-        <item itemvalue="Application.DistributedMonitorRunner" />
       </list>
     </recent_temporary>
   </component>
@@ -719,7 +755,7 @@
       <workItem from="1540123259534" duration="12191000" />
       <workItem from="1540191688743" duration="29000" />
       <workItem from="1540218719301" duration="7888000" />
-      <workItem from="1540305718790" duration="25392000" />
+      <workItem from="1540305718790" duration="25720000" />
     </task>
     <task id="LOCAL-00001" summary="Add receiver service">
       <created>1540225403443</created>
@@ -763,13 +799,17 @@
       <option name="project" value="LOCAL" />
       <updated>1540329524762</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Add MessageSerializationService">
+      <created>1540371761825</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1540371761825</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="ConsumerProducerSharedModelTest - 2018.10.23 at 21h 23m 12s.xml">
-      <configuration name="ConsumerProducerSharedModelTest" configurationId="JUnit" />
-    </history-entry>
     <history-entry file="ConsumerProducerSharedModelTest - 2018.10.23 at 21h 24m 13s.xml">
       <configuration name="ConsumerProducerSharedModelTest" configurationId="JUnit" />
     </history-entry>
@@ -794,9 +834,15 @@
     <history-entry file="ConsumerProducerSharedModelTest_shouldDecode - 2018.10.23 at 21h 36m 19s.xml">
       <configuration name="ConsumerProducerSharedModelTest.shouldDecode" configurationId="JUnit" />
     </history-entry>
+    <history-entry file="DistributedMonitorTest_shouldName - 2018.10.24 at 11h 06m 07s.xml">
+      <configuration name="DistributedMonitorTest.shouldName" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="DistributedMonitorTest_shouldName - 2018.10.24 at 11h 06m 27s.xml">
+      <configuration name="DistributedMonitorTest.shouldName" configurationId="JUnit" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45921000" />
+    <option name="totallyTimeSpent" value="46249000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -817,9 +863,9 @@
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="right" id="Maven Projects" order="5" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.32809225" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32809225" />
       <window_info anchor="bottom" id="Version Control" order="10" weight="0.32704404" />
-      <window_info anchor="bottom" id="Terminal" order="8" visible="true" weight="0.32809225" />
+      <window_info anchor="bottom" id="Terminal" order="8" weight="0.32809225" />
       <window_info id="Designer" order="4" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18196903" />
       <window_info anchor="right" id="Database" order="4" />
@@ -878,24 +924,15 @@
     <MESSAGE value="Add sending request to enter critical section" />
     <MESSAGE value="Fix missing request type in createCriticalSectionRequest" />
     <MESSAGE value="Add waiting for critical section responses in acquireLock" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add waiting for critical section responses in acquireLock" />
+    <MESSAGE value="Add MessageSerializationService" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add MessageSerializationService" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="3" />
+      <option name="time" value="4" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/model/ConsumerProducerSharedModel.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="28" column="33" lean-forward="true" selection-start-line="28" selection-start-column="33" selection-end-line="28" selection-end-column="33" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="646">
@@ -1290,9 +1327,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/DistributedMonitorTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" column="64" lean-forward="true" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="64" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/DistributedMonitorRunner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
+        <state relative-caret-position="621">
           <caret line="81" column="20" selection-start-line="81" selection-start-column="20" selection-end-line="81" selection-end-column="20" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1302,8 +1349,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/DistributedMonitor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="91" column="13" lean-forward="true" selection-start-line="91" selection-start-column="13" selection-end-line="91" selection-end-column="13" />
+        <state relative-caret-position="232">
+          <caret line="75" column="48" selection-start-line="75" selection-start-column="48" selection-end-line="75" selection-end-column="48" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

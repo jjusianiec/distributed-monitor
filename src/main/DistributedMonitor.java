@@ -69,7 +69,13 @@ public class DistributedMonitor<T> {
 			lock.lock();
 
 			// TODO: implement handling requests, implement message which will have type and body fileds
-			new String(body, "UTF-8");
+			MonitorMessage message = MessageSerializationService
+					.decode(new String(body, "UTF-8"), MonitorMessage.class);
+			switch (message.getType()) {
+			case "CriticalSectionRequest": {
+				LOGGER.info(message.getMessage());
+			}
+			}
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Incoming message parsing error", e);
 		} finally {
@@ -118,7 +124,8 @@ public class DistributedMonitor<T> {
 		CriticalSectionRequest criticalSectionRequest = CriticalSectionRequest.builder()
 				.nodeIdWithTimestamp(nodeIdWithTimestamp).type(REQUEST).build();
 		String encodedMessage = MessageSerializationService.encode(criticalSectionRequest);
-		return createMonitorMessage(criticalSectionRequest.getClass().getName(), encodedMessage);
+		return createMonitorMessage(criticalSectionRequest.getClass().getSimpleName(),
+				encodedMessage);
 	}
 
 	private MonitorMessage createMonitorMessage(String type, String encode) {

@@ -56,7 +56,7 @@ public class ReceivingService {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}, 5000, 2000, TimeUnit.MILLISECONDS);
+		}, 2000, 500, TimeUnit.MILLISECONDS);
 	}
 
 	public interface MessageConsumer {
