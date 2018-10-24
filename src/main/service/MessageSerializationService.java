@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import model.ConditionMessage;
 import model.CriticalSectionRequest;
 import model.MonitorMessage;
 
@@ -22,6 +23,10 @@ public class MessageSerializationService {
 
 	public static String encode(MonitorMessage monitorMessage) {
 		return encodeQuietly(monitorMessage);
+	}
+
+	public static String encode(ConditionMessage conditionMessage) {
+		return encodeQuietly(conditionMessage);
 	}
 
 	public static <T> T decode(String object, Class<T> tClass) {
