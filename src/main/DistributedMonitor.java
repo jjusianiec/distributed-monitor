@@ -9,6 +9,7 @@ import model.CriticalSectionRequest;
 import model.DistributedMonitorConfiguration;
 import model.MonitorMessage;
 import model.NodeIdWithTimestamp;
+import service.MessageSerializationService;
 import service.ReceivingService;
 import service.SendingService;
 
@@ -49,7 +50,6 @@ public class DistributedMonitor<T> {
 
 	public void signal(String condition) {
 		LOGGER.info("signal");
-
 	}
 
 	public void waitUntil(String condition) {
@@ -81,14 +81,13 @@ public class DistributedMonitor<T> {
 		lock.lock();
 		try {
 			currentTimestamp++;
-			criticalSectionQueue.add(NodeIdWithTimestamp.builder().timestamp(currentTimestamp)
-					.nodeId(configuration.getNodeId()).build());
-			sendingService.send(createCriticalSectionRequest().encode());
+			criticalSectionQueue.add(getActualNodeIdWithTimestamp());
+			sendingService.send(MessageSerializationService.encode(createCriticalSectionRequest()));
 
 			receivedCriticalSectionResponses = 0;
 			while (receivedCriticalSectionResponses < configuration.getNodeCount()) {
 				lock.unlock();
-				silentSleep(RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS);
+				sleepQuietly(RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS);
 				lock.lock();
 			}
 
@@ -97,7 +96,12 @@ public class DistributedMonitor<T> {
 		}
 	}
 
-	private void silentSleep(int millis) {
+	private NodeIdWithTimestamp getActualNodeIdWithTimestamp() {
+		return NodeIdWithTimestamp.builder().timestamp(currentTimestamp)
+				.nodeId(configuration.getNodeId()).build();
+	}
+
+	private void sleepQuietly(int millis) {
 		try {
 			Thread.sleep(millis);
 		} catch (InterruptedException e) {
@@ -110,10 +114,16 @@ public class DistributedMonitor<T> {
 	}
 
 	private MonitorMessage createCriticalSectionRequest() {
+		NodeIdWithTimestamp nodeIdWithTimestamp = getActualNodeIdWithTimestamp();
 		CriticalSectionRequest criticalSectionRequest = CriticalSectionRequest.builder()
-				.nodeIdWithTimestamp(NodeIdWithTimestamp.builder().nodeId(configuration.getNodeId())
-						.timestamp(currentTimestamp).build()).type(REQUEST).build();
-		return MonitorMessage.builder().type(criticalSectionRequest.getClass().getName())
-				.message(criticalSectionRequest).build();
+				.nodeIdWithTimestamp(nodeIdWithTimestamp).type(REQUEST).build();
+		String encodedMessage = MessageSerializationService.encode(criticalSectionRequest);
+		return createMonitorMessage(criticalSectionRequest.getClass().getName(), encodedMessage);
 	}
+
+	private MonitorMessage createMonitorMessage(String type, String encode) {
+		return MonitorMessage.builder().type(type).message(encode)
+				.runInstanceId(configuration.getRunInstanceId()).build();
+	}
+
 }

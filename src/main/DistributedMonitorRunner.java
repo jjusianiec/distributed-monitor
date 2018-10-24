@@ -13,14 +13,13 @@ import com.google.common.collect.Sets;
 import model.ConsumerProducerSharedModel;
 import model.ConsumerProducerSharedModelSerializationImpl;
 import model.DistributedMonitorConfiguration;
-import model.SharedObjectSerialization;
-
-import static com.google.common.collect.Queues.newArrayDeque;
 
 public class DistributedMonitorRunner {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DistributedMonitorRunner.class);
+
 	public static final int CONSUMER_COUNT = 5;
 	public static final int PRODUCER_COUNT = 1;
+	public static final int NODE_COUNT = CONSUMER_COUNT + PRODUCER_COUNT;
 	public static final String CONSUMER_PRODUCER = "consumer-producer";
 	public static final String EMPTY = "empty";
 	public static final String FULL = "full";
@@ -68,7 +67,7 @@ public class DistributedMonitorRunner {
 				monitor.waitUntil(FULL);
 			}
 
-			silentSleep(ThreadLocalRandom.current().nextInt(TIME_DELAY));
+			sleepQuietly(ThreadLocalRandom.current().nextInt(TIME_DELAY));
 			int producedElement = ThreadLocalRandom.current().nextInt(10_000);
 			long threadId = Thread.currentThread().getId();
 			sharedModel.getBuffer().add(producedElement);
@@ -88,7 +87,7 @@ public class DistributedMonitorRunner {
 			}
 
 			int delay = ThreadLocalRandom.current().nextInt(TIME_DELAY);
-			silentSleep(delay);
+			sleepQuietly(delay);
 			long threadId = Thread.currentThread().getId();
 			Integer element = sharedModel.getBuffer().remove();
 			LOGGER.info("Thread " + threadId + " host " + monitor.getConfiguration().getNodeId()
@@ -98,7 +97,7 @@ public class DistributedMonitorRunner {
 
 	}
 
-	private static void silentSleep(int delay) {
+	private static void sleepQuietly(int delay) {
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
@@ -107,18 +106,15 @@ public class DistributedMonitorRunner {
 	}
 
 	private static DistributedMonitorConfiguration<ConsumerProducerSharedModel> getConfiguration(
-			int i) {
+			int nodeId) {
 		DistributedMonitorConfiguration<ConsumerProducerSharedModel> configuration = new DistributedMonitorConfiguration<>();
-		configuration.setSharedObject(new ConsumerProducerSharedModel());
+		configuration.setNodeId(nodeId);
+		configuration.setSharedObject(new ConsumerProducerSharedModel(BUFFER_SIZE, Queues.newArrayDeque()));
 		configuration.setSharedObjectSerialization(new ConsumerProducerSharedModelSerializationImpl());
-		return  configuration;
-//		return
-//
-//				DistributedMonitorConfiguration<>.builder().conditions(CONDITIONS)
-//				.monitorId(CONSUMER_PRODUCER).nodeId(i).nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
-//				.sharedObject(new ConsumerProducerSharedModel(BUFFER_SIZE, Queues.newArrayDeque()))
-//				.runInstanceId(RUN_INSTANCE_ID)
-//				.sharedObjectSerialization(new ConsumerProducerSharedModelSerializationImpl())
-//				.build();
+		configuration.setConditions(CONDITIONS);
+		configuration.setNodeCount(NODE_COUNT);
+		configuration.setRunInstanceId(RUN_INSTANCE_ID);
+		configuration.setMonitorId(CONSUMER_PRODUCER);
+		return configuration;
 	}
 }
