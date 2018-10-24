@@ -1,5 +1,5 @@
 package model;
 
 public enum CriticalSectionRequestType {
-	REQUEST, REPLY, RELEASE
+	REQUEST, RESPONSE, RELEASE
 }

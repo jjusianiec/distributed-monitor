@@ -15,4 +15,6 @@ public class MonitorMessage{
 	private UUID runInstanceId;
 	private String type;
 	private String message;
+	private NodeIdWithTimestamp nodeIdWithTimestamp;
+	private Integer recipientNodeId;
 }

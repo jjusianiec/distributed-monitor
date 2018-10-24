@@ -4,8 +4,6 @@ import org.slf4j.LoggerFactory;
 
 import model.CriticalSectionRequest;
 
-import static org.junit.Assert.*;
-
 public class DistributedMonitorTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DistributedMonitorTest.class);
 

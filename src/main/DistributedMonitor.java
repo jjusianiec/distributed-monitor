@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 
 import model.CriticalSectionRequest;
+import model.CriticalSectionRequestType;
 import model.DistributedMonitorConfiguration;
 import model.MonitorMessage;
 import model.NodeIdWithTimestamp;
@@ -14,11 +15,14 @@ import service.ReceivingService;
 import service.SendingService;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static model.CriticalSectionRequestType.RESPONSE;
 import static model.CriticalSectionRequestType.REQUEST;
 import static org.slf4j.LoggerFactory.getLogger;
+import static service.LamportClockUtils.getNewTimestamp;
 
 public class DistributedMonitor<T> {
 	public static final int RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS = 100;
+	public static final Integer ALL_NODES = null;
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);
 	private final Lock lock = new ReentrantLock(true);
@@ -71,10 +75,15 @@ public class DistributedMonitor<T> {
 			// TODO: implement handling requests, implement message which will have type and body fileds
 			MonitorMessage message = MessageSerializationService
 					.decode(new String(body, "UTF-8"), MonitorMessage.class);
-			switch (message.getType()) {
-			case "CriticalSectionRequest": {
-				LOGGER.info(message.getMessage());
+			if (isMessageInvalid(message)) {
+				return;
 			}
+			switch (message.getType()) {
+			case "CriticalSectionRequest":
+				CriticalSectionRequest criticalSectionRequest = MessageSerializationService
+						.decode(message.getMessage(), CriticalSectionRequest.class);
+				handleCriticalSectionRequest(criticalSectionRequest, message);
+				break;
 			}
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("Incoming message parsing error", e);
@@ -83,19 +92,43 @@ public class DistributedMonitor<T> {
 		}
 	}
 
+	private void handleCriticalSectionRequest(CriticalSectionRequest criticalSectionRequest,
+			MonitorMessage message) {
+		switch (criticalSectionRequest.getType()) {
+		case REQUEST:
+			criticalSectionQueue.add(message.getNodeIdWithTimestamp());
+			currentTimestamp = getNewTimestamp(currentTimestamp, message);
+			currentTimestamp++;
+			sendingService.send(MessageSerializationService
+					.encode(createCriticalSectionRequest(RESPONSE,
+							message.getNodeIdWithTimestamp().getNodeId())));
+			break;
+		case RESPONSE:
+			receivedCriticalSectionResponses++;
+			currentTimestamp = getNewTimestamp(currentTimestamp, message);
+			break;
+		case RELEASE:
+			break;
+		}
+
+	}
+
 	private void acquireDistributedLock() {
 		lock.lock();
 		try {
 			currentTimestamp++;
 			criticalSectionQueue.add(getActualNodeIdWithTimestamp());
-			sendingService.send(MessageSerializationService.encode(createCriticalSectionRequest()));
+			sendingService.send(MessageSerializationService
+					.encode(createCriticalSectionRequest(REQUEST, ALL_NODES)));
 
 			receivedCriticalSectionResponses = 0;
-			while (receivedCriticalSectionResponses < configuration.getNodeCount()) {
+			while (receivedCriticalSectionResponses < configuration.getNodeCount() - 1) {
 				lock.unlock();
 				sleepQuietly(RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS);
 				lock.lock();
 			}
+			receivedCriticalSectionResponses = 0;
+			LOGGER.info("received all responses!");
 
 		} finally {
 			lock.unlock();
@@ -119,18 +152,35 @@ public class DistributedMonitor<T> {
 
 	}
 
-	private MonitorMessage createCriticalSectionRequest() {
-		NodeIdWithTimestamp nodeIdWithTimestamp = getActualNodeIdWithTimestamp();
-		CriticalSectionRequest criticalSectionRequest = CriticalSectionRequest.builder()
-				.nodeIdWithTimestamp(nodeIdWithTimestamp).type(REQUEST).build();
+	private MonitorMessage createCriticalSectionRequest(CriticalSectionRequestType type,
+			Integer recipientNodeId) {
+		CriticalSectionRequest criticalSectionRequest = CriticalSectionRequest.builder().type(type)
+				.build();
 		String encodedMessage = MessageSerializationService.encode(criticalSectionRequest);
 		return createMonitorMessage(criticalSectionRequest.getClass().getSimpleName(),
-				encodedMessage);
+				encodedMessage, recipientNodeId);
 	}
 
-	private MonitorMessage createMonitorMessage(String type, String encode) {
+	private MonitorMessage createMonitorMessage(String type, String encode,
+			Integer recipientNodeId) {
+		NodeIdWithTimestamp nodeIdWithTimestamp = getActualNodeIdWithTimestamp();
 		return MonitorMessage.builder().type(type).message(encode)
-				.runInstanceId(configuration.getRunInstanceId()).build();
+				.runInstanceId(configuration.getRunInstanceId())
+				.nodeIdWithTimestamp(nodeIdWithTimestamp).recipientNodeId(recipientNodeId).build();
 	}
 
+	private boolean isMessageInvalid(MonitorMessage message) {
+		if (!configuration.getRunInstanceId().equals(message.getRunInstanceId())) {
+			LOGGER.info("Received messages from previous application run, omitting");
+			return true;
+		}
+		if (message.getRecipientNodeId() != null && !message.getRecipientNodeId()
+				.equals(configuration.getNodeId())) {
+			return true;
+		}
+		if (configuration.getNodeId().equals(message.getNodeIdWithTimestamp().getNodeId())) {
+			return true;
+		}
+		return false;
+	}
 }
