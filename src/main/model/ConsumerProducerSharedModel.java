@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ConsumerProducerSharedModel implements Message {
+public class ConsumerProducerSharedModel extends SerializableMessage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerProducerSharedModel.class);
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private Integer size;
@@ -36,7 +36,7 @@ public class ConsumerProducerSharedModel implements Message {
 	}
 
 	@Override
-	public Message decode(String object) {
+	public SerializableMessage decode(String object) {
 		try {
 			return OBJECT_MAPPER.readValue(object, ConsumerProducerSharedModel.class);
 		} catch (IOException e) {

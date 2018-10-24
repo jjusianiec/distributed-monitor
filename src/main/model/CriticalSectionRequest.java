@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,8 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CriticalSectionRequest extends InstanceMessage implements Message  {
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+public class CriticalSectionRequest extends SerializableMessage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CriticalSectionRequest.class);
 
 	private NodeIdWithTimestamp nodeIdWithTimestamp;
@@ -35,7 +33,7 @@ public class CriticalSectionRequest extends InstanceMessage implements Message  
 	}
 
 	@Override
-	public Message decode(String object) {
+	public SerializableMessage decode(String object) {
 		try {
 			return OBJECT_MAPPER.readValue(object, CriticalSectionRequest.class);
 		} catch (IOException e) {

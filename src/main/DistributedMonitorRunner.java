@@ -11,7 +11,7 @@ import com.google.common.collect.Sets;
 
 import model.ConsumerProducerSharedModel;
 import model.DistributedMonitorConfiguration;
-import model.Message;
+import model.SerializableMessage;
 
 import static com.google.common.collect.Queues.newArrayDeque;
 
@@ -104,7 +104,7 @@ public class DistributedMonitorRunner {
 		}
 	}
 
-	private static DistributedMonitorConfiguration<Message> getConfiguration(int i) {
+	private static DistributedMonitorConfiguration<SerializableMessage> getConfiguration(int i) {
 		return DistributedMonitorConfiguration.builder().conditions(CONDITIONS)
 				.monitorId(CONSUMER_PRODUCER).nodeId(i).nodeCount(CONSUMER_COUNT + PRODUCER_COUNT)
 				.sharedObject(ConsumerProducerSharedModel.builder().size(BUFFER_SIZE)
