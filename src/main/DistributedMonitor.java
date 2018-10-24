@@ -2,6 +2,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
@@ -11,6 +12,7 @@ import model.DistributedMonitorConfiguration;
 import model.MonitorMessage;
 import model.NodeIdWithTimestamp;
 import service.MessageSerializationService;
+import service.NodeIdWithTimestampComparator;
 import service.ReceivingService;
 import service.SendingService;
 
@@ -21,14 +23,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static service.LamportClockUtils.getNewTimestamp;
 
 public class DistributedMonitor<T> {
-	public static final int RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS = 100;
+	public static final int WAITING_TO_RECEIVE_ALL_CRITICAL_SECTION_RESPONSES_SLEEP_MILLIS = 100;
 	public static final Integer ALL_NODES = null;
+	public static final int WAITING_TO_BE_FIRST_IN_QUEUE_SLEEP_MILLIS = 100;
 	private DistributedMonitorConfiguration<T> configuration;
 	private static final Logger LOGGER = getLogger(DistributedMonitor.class);
 	private final Lock lock = new ReentrantLock(true);
 	private final ReceivingService receivingService;
 	private final SendingService sendingService;
-	private final List<NodeIdWithTimestamp> criticalSectionQueue = newArrayList();
+	private List<NodeIdWithTimestamp> criticalSectionQueue = newArrayList();
 	private long currentTimestamp = 0;
 	private int receivedCriticalSectionResponses = 0;
 
@@ -57,7 +60,7 @@ public class DistributedMonitor<T> {
 	}
 
 	public void waitUntil(String condition) {
-		LOGGER.info("waitUntil");
+//		LOGGER.info("waitUntil");
 	}
 
 	public T getSharedModel() {
@@ -108,6 +111,9 @@ public class DistributedMonitor<T> {
 			currentTimestamp = getNewTimestamp(currentTimestamp, message);
 			break;
 		case RELEASE:
+			criticalSectionQueue = criticalSectionQueue.stream()
+					.filter(o -> !o.getNodeId().equals(message.getNodeIdWithTimestamp().getNodeId()))
+					.collect(Collectors.toList());
 			break;
 		}
 
@@ -124,11 +130,20 @@ public class DistributedMonitor<T> {
 			receivedCriticalSectionResponses = 0;
 			while (receivedCriticalSectionResponses < configuration.getNodeCount() - 1) {
 				lock.unlock();
-				sleepQuietly(RECEIVED_CRITICAL_SECTION_RESPONSES_REFRESHES_INTERVAL_MILLIS);
+				sleepQuietly(WAITING_TO_RECEIVE_ALL_CRITICAL_SECTION_RESPONSES_SLEEP_MILLIS);
 				lock.lock();
 			}
 			receivedCriticalSectionResponses = 0;
-			LOGGER.info("received all responses!");
+
+			criticalSectionQueue.sort(NodeIdWithTimestampComparator.INSTANCE);
+			while (!configuration.getNodeId().equals(criticalSectionQueue.get(0).getNodeId())) {
+				criticalSectionQueue.sort(NodeIdWithTimestampComparator.INSTANCE);
+				lock.unlock();
+				sleepQuietly(WAITING_TO_BE_FIRST_IN_QUEUE_SLEEP_MILLIS);
+				lock.lock();
+			}
+
+			LOGGER.info("enters CS");
 
 		} finally {
 			lock.unlock();
